@@ -48,7 +48,7 @@ const createSendToken = (user, statusCode, req, res) => {
   // Remove password from output
   user.password = undefined;
 
-  res.status(statusCode).json(user);
+  res.status(statusCode).json(token);
 };
 exports.signup = catchAsync(async (req, res, next) => {
   const newUser = await User.create(req.body);
