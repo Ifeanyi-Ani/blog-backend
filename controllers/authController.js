@@ -53,6 +53,7 @@ const createSendToken = (user, statusCode, req, res) => {
     currentUser: user,
   });
 };
+
 exports.signup = catchAsync(async (req, res, next) => {
   const newUser = await User.create(req.body);
 
@@ -75,6 +76,7 @@ exports.login = catchAsync(async (req, res, next) => {
   }
   createSendToken(user, 200, req, res);
 });
+
 exports.logout = (req, res) => {
   res.cookie("jwt", "!currentUser", {
     expires: new Date(Date.now() * 10 * 1000),
@@ -82,6 +84,7 @@ exports.logout = (req, res) => {
   });
   res.status(200).json({ status: "success" });
 };
+
 exports.protect = catchAsync(async (req, res, next) => {
   let token;
   if (
