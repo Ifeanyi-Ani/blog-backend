@@ -95,24 +95,23 @@ exports.deletePost = catchAsync(async (req, res, next) => {
 });
 
 exports.createPost = catchAsync(async (req, res, next) => {
-  // if (req.file) {
-  //   req.body.image = req.file.filename;
-  // }
-  const storageRef = ref(
-    storage,
-    `posts/${req.file.originalname}  ${Math.random() * 20000}`,
-  );
-  const metadata = req.file.mimtype;
-  const snapshot = await uploadBytesResumable(
-    storageRef,
-    req.file.buffer,
-    metadata,
-  );
-  const downloadUrl = await getDownloadURL(snapshot.ref);
-  if (downloadUrl) {
-    req.body.image = downloadUrl;
+  if (req.file) {
+    const storageRef = ref(
+      storage,
+      `posts/${req.file.originalname}  ${Math.random() * 20000}`,
+    );
+    const metadata = req.file.mimtype;
+    const snapshot = await uploadBytesResumable(
+      storageRef,
+      req.file.buffer,
+      metadata,
+    );
+    const downloadUrl = await getDownloadURL(snapshot.ref);
+    if (downloadUrl) {
+      req.body.image = downloadUrl;
+    }
   }
-  const newPost = await Post.create(req.body);
+  const newPost = await Post.create({ ...req.body, userId: req.user.Id });
   res.status(201).json(newPost);
 });
 
@@ -120,4 +119,3 @@ exports.getAllPost = catchAsync(async (req, res, next) => {
   const posts = await Post.find();
   res.status(200).json(posts);
 });
-

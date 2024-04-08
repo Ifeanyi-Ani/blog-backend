@@ -30,50 +30,70 @@ const AppErr = require("../utils/appErr");
 // });
 // exports.uploadUserPhoto = upload.single('photo')
 const signToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN,
-  });
+  return {
+    accessToken: jwt.sign({ id }, process.env.ACCESS_TOKEN_SECRET, {
+      expiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN,
+    }),
+    refreshToken: jwt.sign({ id }, process.env.REFRESH_TOKEN_SECRET, {
+      expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN,
+    }),
+  };
 };
 
 const createSendToken = (user, statusCode, req, res) => {
   const token = signToken(user._id);
-
-  res.cookie("jwt", token, {
+  const accessTokenExpires = process.env.REFRESH_TOKEN_EXPIRES_IN;
+  res.cookie("jwt", token.accessToken, {
     expires: new Date(
-      Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000,
+      Date.now() + process.env.ACCESS_TOKEN_EXPIRES_IN * 60 * 60 * 1000,
     ),
+    maxAge: 60 * 60 * 1000,
     httpOnly: true,
+    sameSite: "none",
+    secure: true,
   });
 
   // Remove password from output
   user.password = undefined;
 
+  user.refreshToken = token.refreshToken;
+  const accessToken = token.accessToken;
+
   res.status(statusCode).json({
-    token,
+    token: accessToken,
     currentUser: user,
   });
 };
 
 exports.signup = catchAsync(async (req, res, next) => {
+  // creating new user
   const newUser = await User.create(req.body);
 
+  // sending access and refresh token
   createSendToken(newUser, 201, req, res);
 });
 
 exports.login = catchAsync(async (req, res, next) => {
+  // destructuring the email and password
   const { email, password } = req.body;
 
+  // throw and error if there is no email or password
   if (!email || !password) {
     next(new AppErr("Please provide email and password"), 400);
   }
+
+  // we find the email and password in our database
   const user = await User.findOne({ email }).select("+password");
 
+  // if there is no match or the password is wrong, we throw and error
   if (!user || !(await user.correctPassword(password, user.password))) {
     return res.status(401).json({
       status: "failed",
       msg: "Incorrect Details",
     });
   }
+
+  // else we grant them acess and send the neccessary token
   createSendToken(user, 200, req, res);
 });
 
@@ -86,6 +106,7 @@ exports.logout = (req, res) => {
 };
 
 exports.protect = catchAsync(async (req, res, next) => {
+  console.log(req.cookies.jwt);
   let token;
   if (
     req.headers.authorization &&
@@ -93,7 +114,7 @@ exports.protect = catchAsync(async (req, res, next) => {
   ) {
     token = req.headers.authorization.split(" ")[1];
   } else if (req.cookies.jwt) {
-    token = req.cookies;
+    token = JSON.parse(req.cookies.jwt);
   }
 
   if (!token) {
@@ -103,7 +124,10 @@ exports.protect = catchAsync(async (req, res, next) => {
   }
 
   // 2) Verification token
-  const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+  const decoded = await promisify(jwt.verify)(
+    token,
+    process.env.ACCESS_TOKEN_SECRET,
+  );
 
   // 3) Check if user still exists
   const currentUser = await User.findById(decoded.id);
