@@ -32,31 +32,29 @@ const AppErr = require("../utils/appErr");
 const signToken = (id) => {
   return {
     accessToken: jwt.sign({ id }, process.env.ACCESS_TOKEN_SECRET, {
-      expiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN,
+      expiresIn: parseInt(process.env.ACCESS_TOKEN_EXPIRES_IN) * 60 * 60 * 1000,
     }),
     refreshToken: jwt.sign({ id }, process.env.REFRESH_TOKEN_SECRET, {
-      expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN,
+      expiresIn:
+        parseInt(process.env.REFRESH_TOKEN_EXPIRES_IN) * 24 * 60 * 60 * 1000,
     }),
   };
 };
 
 const createSendToken = (user, statusCode, req, res) => {
   const token = signToken(user._id);
-  const accessTokenExpires = process.env.REFRESH_TOKEN_EXPIRES_IN;
-  res.cookie("jwt", token.accessToken, {
-    expires: new Date(
-      Date.now() + process.env.ACCESS_TOKEN_EXPIRES_IN * 60 * 60 * 1000,
-    ),
-    maxAge: 60 * 60 * 1000,
+
+  res.cookie("jwt", token.refreshToken, {
     httpOnly: true,
-    sameSite: "none",
     secure: true,
+    sameSite: "none",
+    maxAge:
+      parseInt(process.env.REFRESH_TOKEN_EXPIRES_IN) * 24 * 60 * 60 * 1000,
   });
 
   // Remove password from output
   user.password = undefined;
 
-  user.refreshToken = token.refreshToken;
   const accessToken = token.accessToken;
 
   res.status(statusCode).json({
@@ -89,7 +87,7 @@ exports.login = catchAsync(async (req, res, next) => {
   if (!user || !(await user.correctPassword(password, user.password))) {
     return res.status(401).json({
       status: "failed",
-      msg: "Incorrect Details",
+      message: "Incorrect Details",
     });
   }
 
@@ -97,25 +95,55 @@ exports.login = catchAsync(async (req, res, next) => {
   createSendToken(user, 200, req, res);
 });
 
-exports.logout = (req, res) => {
-  res.cookie("jwt", "!currentUser", {
-    expires: new Date(Date.now() * 10 * 1000),
-    httpOnly: true,
-  });
-  res.status(200).json({ status: "success" });
-};
+exports.refresh = catchAsync(async (req, res, next) => {
+  const cookies = req.cookies;
 
-exports.protect = catchAsync(async (req, res, next) => {
-  console.log(req.cookies.jwt);
+  if (!cookies?.jwt) return next(new AppErr("Unauthorized", 401));
+  const refreshToken = cookies.jwt;
+
+  const decoded = await promisify(jwt.verify)(
+    refreshToken,
+    process.env.REFRESH_TOKEN_SECRET,
+  );
+  const currentUser = await User.findById(decoded.id);
+  if (!currentUser)
+    return next(
+      new AppErr("The user belonging to this token does not exit", 401),
+    );
+
+  const id = currentUser.id;
+  const token = jwt.sign({ id }, process.env.ACCESS_TOKEN_SECRET, {
+    expiresIn: parseInt(process.env.ACCESS_TOKEN_EXPIRES_IN) * 60 * 60 * 1000,
+  });
+  res.status(200).json({ token, currentUser });
+});
+
+exports.logout = catchAsync(async (req, res, next) => {
+  const cookies = req.cookies;
+  if (!cookies.jwt) return next(new AppErr("", 204));
+  res.clearCookie("jwt", { httpOnly: true, sameSite: "none", secure: true });
+  res.json({ message: "Logged out sucessfully" });
+});
+
+exports.getLoggedUser = catchAsync(async (req, res, next) => {
+  console.log(req.user);
+  const userId = req.user.id;
+  const match = User.findById(userId);
+  if (!match) return next(new AppErr("Loggedin User not found", 404));
+  res.status(200).json({ currentUser: match });
+});
+
+exports.protect = catchAsync(async (req, _res, next) => {
   let token;
   if (
     req.headers.authorization &&
     req.headers.authorization.startsWith("Bearer")
   ) {
     token = req.headers.authorization.split(" ")[1];
-  } else if (req.cookies.jwt) {
-    token = JSON.parse(req.cookies.jwt);
   }
+  // else if (req.cookies.jwt) {
+  //   token = req.cookies.jwt;
+  // }
 
   if (!token) {
     return next(
@@ -138,12 +166,12 @@ exports.protect = catchAsync(async (req, res, next) => {
   }
 
   req.user = currentUser;
-  res.locals.user = currentUser;
+  // res.locals.user = currentUser;
   next();
 });
 
 exports.restrictTo = (...roles) => {
-  return (req, res, next) => {
+  return (req, _res, next) => {
     if (!roles.includes(req.user.role)) {
       return next(
         new AppErr("You do not have permission to perform this action", 403),

@@ -11,18 +11,19 @@ const {
 } = require("../controllers/userController");
 const { protect } = require("../controllers/authController");
 
+router.get("/", getAllUser);
 // router.patch('/updateMe', authController.protect, userController.updateMe)
 //update User
+
+router.use(protect);
 router
   .route("/:id")
-  .patch(protect, uploadUserPhoto, updateUser)
-  .delete(protect, deleteUser)
-  .get(protect, getUser);
+  .patch(uploadUserPhoto, updateUser)
+  .delete(deleteUser)
+  .get(getUser);
 //get all user
-router.get("/", getAllUser);
 //follow a user
 // router.put("/:id/followers", userController.followers)
 //unfollow a user
 
 module.exports = router;
-

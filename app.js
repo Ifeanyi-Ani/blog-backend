@@ -16,12 +16,16 @@ const authRoute = require("./routes/auth");
 const postRoute = require("./routes/post");
 const commentRoute = require("./routes/comments");
 const likeRoute = require("./routes/likes");
-App.use(cors());
+const credentials = require("./middleware/credentials");
+const corOptions = require("./config/corOptions");
+
+App.use(credentials);
+App.use(cors(corOptions));
 // App.use(cors({
 //   origin: 'https://tumlr-ani.netlify.app'
 // }));
 
-App.options("*", cors());
+// App.options("*", cors());
 
 App.use(express.static(path.join(__dirname, "public")));
 App.use(helmet());
