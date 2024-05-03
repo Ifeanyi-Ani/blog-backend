@@ -111,7 +111,10 @@ exports.createPost = catchAsync(async (req, res, next) => {
       req.body.image = downloadUrl;
     }
   }
-  const newPost = await Post.create({ ...req.body, userId: req.user.Id });
+  console.log(req.user);
+  const data = { ...req.body, userId: req.user.id };
+  console.log(data);
+  const newPost = await Post.create(data);
   res.status(201).json(newPost);
 });
 
