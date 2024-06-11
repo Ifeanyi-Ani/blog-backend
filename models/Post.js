@@ -1,47 +1,56 @@
 const mongoose = require("mongoose");
-const PostSchema = new mongoose.Schema({
-  title: {
-    type: String,
-    required: [true, "title most have a title"]
-  },
-  body: {
-    type: String,
-  },
-  image: {
-    type: String,
-    default: ""
-  },
-  category: [{
-    value: String,
-    label: String
-  }],
+const PostSchema = new mongoose.Schema(
+  {
+    title: {
+      type: String,
+      required: [true, "title most have a title"],
+    },
+    body: {
+      type: String,
+    },
+    image: {
+      type: String,
+      default: "",
+    },
+    category: [
+      {
+        value: String,
+        label: String,
+      },
+    ],
 
-  likes: [],
-  createdAt: {
-    type: Date,
-    default: Date.now
+    likes: [],
+    createdAt: {
+      type: Date,
+      default: Date.now,
+    },
+    userId: {
+      type: mongoose.Schema.ObjectId,
+      ref: "User",
+      required: [true, "Post must belong to a user"],
+    },
+    comments: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Comment",
+      },
+    ],
   },
-  userId: {
-    type: mongoose.Schema.ObjectId,
-    ref: "User",
-    required: [true, "Post must belong to a user"]
-  }
-},
   {
     timestamps: true,
     toJSON: { virtuals: true },
-    toObject: { virtuals: true }
-  })
-PostSchema.virtual('comments', {
+    toObject: { virtuals: true },
+  },
+);
+PostSchema.virtual("Comments", {
   ref: "Comment",
-  foreignField: 'postId',
-  localField: '_id'
-
-})
+  foreignField: "postId",
+  localField: "_id",
+});
 PostSchema.pre(/^find/, function (next) {
   this.populate({
     path: "userId",
-  })
-  next()
-})
-module.exports = mongoose.model("Post", PostSchema)
+  });
+  next();
+});
+module.exports = mongoose.model("Post", PostSchema);

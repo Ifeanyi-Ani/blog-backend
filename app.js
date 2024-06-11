@@ -35,19 +35,19 @@ App.use(express.urlencoded({ extended: true }));
 App.use(cookieParser());
 App.use(morgan("dev"));
 
-App.use((req, res, next) => {
+App.use((req, _res, next) => {
   req.requesTime = new Date().toISOString();
   // console.log(req.cookies);
   next();
 });
 
-App.use(commentRoute);
+App.use("/comments", commentRoute);
 App.use(likeRoute);
 App.use("/users", userRoute);
 App.use("/auth", authRoute);
 App.use("/posts", postRoute);
 
-App.all("*", (req, res, next) => {
+App.all("*", (req, _res, next) => {
   next(new AppErr(`Can't find ${req.originalUrl} on this server!`, 404));
 });
 App.use(globalErr);

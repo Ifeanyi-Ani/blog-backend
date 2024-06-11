@@ -5,15 +5,17 @@ const { protect } = require("../controllers/authController");
 const router = express.Router();
 
 router
-  .route("/posts/:postId/comments")
+  .route("/:postId")
   .post(protect, commentController.createComment)
   .get(commentController.getComments);
 
-router
-  .route("/posts/:postId/comments/:commentId")
-  .patch(protect, commentController.editComment)
-  .delete(protect, commentController.deleteComment);
-
-router.get("/posts/comments", commentController.getAllComments);
+// router.post("comments/posts/:postId/:parentId", commentController.replyComment);
+//
+// router
+//   .route("comments/posts/:postId/:commentId")
+//   .patch(protect, commentController.editComment)
+//   .delete(protect, commentController.deleteComment);
+//
+// router.get("comments/posts/", commentController.getAllComments);
 
 module.exports = router;

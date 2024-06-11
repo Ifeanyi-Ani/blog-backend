@@ -52,6 +52,13 @@ const createSendToken = (user, statusCode, req, res) => {
       parseInt(process.env.REFRESH_TOKEN_EXPIRES_IN) * 24 * 60 * 60 * 1000,
   });
 
+  res.cookie("accessToken", token.accessToken, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "none",
+    maxAge: parseInt(process.env.ACCESS_TOKEN_EXPIRES_IN) * 60 * 60 * 1000,
+  });
+
   // Remove password from output
   user.password = undefined;
 
@@ -115,6 +122,13 @@ exports.refresh = catchAsync(async (req, res, next) => {
   const token = jwt.sign({ id }, process.env.ACCESS_TOKEN_SECRET, {
     expiresIn: parseInt(process.env.ACCESS_TOKEN_EXPIRES_IN) * 60 * 60 * 1000,
   });
+
+  res.cookie("accessToken", token, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "none",
+    maxAge: parseInt(process.env.ACCESS_TOKEN_EXPIRES_IN) * 60 * 60 * 1000,
+  });
   res.status(200).json({ token, currentUser });
 });
 
@@ -140,10 +154,9 @@ exports.protect = catchAsync(async (req, _res, next) => {
     req.headers.authorization.startsWith("Bearer")
   ) {
     token = req.headers.authorization.split(" ")[1];
+  } else if (req.cookies.accessToken) {
+    token = req.cookies.accessToken;
   }
-  // else if (req.cookies.jwt) {
-  //   token = req.cookies.jwt;
-  // }
 
   if (!token) {
     return next(

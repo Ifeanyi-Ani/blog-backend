@@ -2,6 +2,7 @@ const Comment = require("../models/Comment");
 const User = require("../models/User");
 const catchAsync = require("../utils/catchAsync");
 const AppErr = require("../utils/appErr");
+const Post = require("../models/Post");
 
 exports.createComment = catchAsync(async (req, res, next) => {
   const { postId } = req.params;
@@ -18,8 +19,28 @@ exports.createComment = catchAsync(async (req, res, next) => {
     postId,
     userId,
   });
-
+  if (!comment) {
+    return next(new AppErr("unable to create comment", 404));
+  }
+  await Post.findByIdAndUpdate(postId, { $push: { comments: comment._id } });
   res.status(201).json(comment);
+});
+
+exports.replyComment = catchAsync(async (req, res, next) => {
+  const reply = new Comment({
+    text: req.body.text,
+    userId: req.body.userId,
+    postId: req.params.postId,
+    parentId: req.params.parentId,
+  });
+  const saveReply = await reply.save();
+  await Comment.findByIdAndUpdate(req.params.parentId, {
+    $push: { replies: saveReply._id },
+  });
+  if (!saveReply) {
+    return new (AppErr("unable to reply", 404))();
+  }
+  res.status(201).json(saveReply);
 });
 
 exports.getComments = catchAsync(async (req, res, next) => {
