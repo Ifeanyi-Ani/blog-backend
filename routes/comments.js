@@ -9,13 +9,13 @@ router
   .post(protect, commentController.createComment)
   .get(commentController.getComments);
 
-// router.post("comments/posts/:postId/:parentId", commentController.replyComment);
-//
-// router
-//   .route("comments/posts/:postId/:commentId")
-//   .patch(protect, commentController.editComment)
-//   .delete(protect, commentController.deleteComment);
-//
-// router.get("comments/posts/", commentController.getAllComments);
+router.post("/:postId/:parentId", commentController.replyComment);
+
+router
+  .route("/:postId/:commentId")
+  .patch(protect, commentController.editComment)
+  .delete(protect, commentController.deleteComment);
+
+router.get("/posts", commentController.getAllComments);
 
 module.exports = router;

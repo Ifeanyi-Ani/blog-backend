@@ -39,6 +39,12 @@ CommentSchema.pre(/^find/, function (next) {
   this.populate({
     path: "userId",
     select: "username photo role",
+  }).populate({
+    path: "replies",
+    populate: {
+      path: "userId",
+      select: "username photo",
+    },
   });
   next();
 });
