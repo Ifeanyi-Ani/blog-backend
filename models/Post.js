@@ -49,7 +49,7 @@ PostSchema.virtual("Comments", {
 });
 PostSchema.pre(/^find/, function (next) {
   this.populate({
-    path: "userId",
+    path: "userId comments",
   });
   next();
 });
