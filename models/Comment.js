@@ -21,6 +21,9 @@ const CommentSchema = new mongoose.Schema(
       ref: "Comment",
       default: null,
     },
+    parentAuthor: {
+      type: String,
+    },
     replies: [
       {
         type: mongoose.Schema.Types.ObjectId,

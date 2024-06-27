@@ -32,6 +32,7 @@ exports.replyComment = catchAsync(async (req, res, next) => {
     userId: req.body.userId,
     postId: req.params.postId,
     parentId: req.params.parentId,
+    parentAuthor: req.body.parentAuthor,
   });
   const saveReply = await reply.save();
   await Comment.findByIdAndUpdate(req.params.parentId, {
