@@ -1,14 +1,5 @@
 const express = require("express");
-const App = express();
 const path = require("path");
-const cookieParser = require("cookie-parser");
-
-const bodyParser = require("body-parser");
-
-const helmet = require("helmet");
-const morgan = require("morgan");
-const cors = require("cors");
-
 const globalErr = require("./controllers/errController");
 const AppErr = require("./utils/appErr");
 const userRoute = require("./routes/users");
@@ -18,6 +9,14 @@ const commentRoute = require("./routes/comments");
 const likeRoute = require("./routes/likes");
 const credentials = require("./middleware/credentials");
 const corOptions = require("./config/corOptions");
+
+const App = express();
+
+const cookieParser = require("cookie-parser");
+const bodyParser = require("body-parser");
+const helmet = require("helmet");
+const morgan = require("morgan");
+const cors = require("cors");
 
 App.use(credentials);
 App.use(cors(corOptions));
@@ -33,7 +32,7 @@ App.use(bodyParser.json());
 App.use(express.json());
 App.use(express.urlencoded({ extended: true }));
 App.use(cookieParser());
-App.use(morgan("dev"));
+App.use(morgan("short"));
 
 App.use((req, _res, next) => {
   req.requesTime = new Date().toISOString();
