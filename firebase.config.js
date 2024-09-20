@@ -1,11 +1,45 @@
-module.exports = {
-  firebaseConfig: {
-    apiKey: "AIzaSyBhNQa1y3yjSLfkB-e2it2HT3rQvnAC-po",
-    authDomain: "blog-460e6.firebaseapp.com",
-    projectId: "blog-460e6",
-    storageBucket: "blog-460e6.appspot.com",
-    messagingSenderId: "884087248641",
-    appId: "1:884087248641:web:a579ef72b885d6a4d3ad00",
-    measurementId: "G-76MCSXSY07"
+const { initializeApp } = require("firebase/app");
+const { getFirestore } = require("firebase/firestore");
+const AppErr = require("./utils/appErr");
+
+require("dotenv").config();
+
+const {
+  APIKEY,
+  AUTHDOMAIN,
+  STORAGEBUCKET,
+  MESSAGINGSENDERID,
+  APPID,
+  MEASUREMENTID,
+  PROJECTID,
+} = process.env;
+
+const firebaseConfig = {
+  apiKey: APIKEY,
+  authDomain: AUTHDOMAIN,
+  projectId: PROJECTID,
+  storageBucket: STORAGEBUCKET,
+  messagingSenderId: MESSAGINGSENDERID,
+  appId: APPID,
+  measurementId: MEASUREMENTID,
+};
+
+let app;
+let fireStoreDb;
+
+const initializeFirebaseApp = () => {
+  try {
+    app = initializeApp(firebaseConfig);
+    fireStoreDb = getFirestore();
+    return app;
+  } catch (error) {
+    return new AppErr("firebase-initializeFirebaseApp", 500);
   }
-}
+};
+
+const getFirebaseApp = () => app;
+
+module.exports = {
+  initializeFirebaseApp,
+  getFirebaseApp,
+};
