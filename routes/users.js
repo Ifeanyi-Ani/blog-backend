@@ -1,9 +1,7 @@
 const express = require("express");
 const router = express.Router();
-const { json } = require("express");
 
 const {
-  uploadUserPhoto,
   updateUser,
   deleteUser,
   getUser,
@@ -18,7 +16,6 @@ router.get("/", getAllUser);
 router.use(protect);
 router
   .route("/:id")
-  .patch(uploadUserPhoto, updateUser)
   .delete(deleteUser)
   .get(getUser);
 //get all user
