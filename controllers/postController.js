@@ -3,8 +3,28 @@ const Post = require("../models/Post");
 const Comment = require("../models/Comment");
 const AppErr = require("../utils/appErr");
 
+exports.createPost = catchAsync(async (req, res, next) => {
+  const data = {
+    ...req.body,
+    author: req.user.id,
+  };
 
+  const newPost = await Post.create(data);
+  res.status(201).json(newPost);
+});
 
+exports.updatePost = catchAsync(async (req, res, next) => {
+  const { id } = req.params;
+
+  const post = await Post.findByIdAndUpdate(id, req.body, {
+    new: true,
+    runValidators: true,
+  });
+  if (!post) {
+    return next(new AppErr("No post found with that ID", 404));
+  }
+  res.status(200).json(post);
+});
 
 exports.getPost = catchAsync(async (req, res, next) => {
   const { id } = req.params;
@@ -42,5 +62,7 @@ exports.deletePost = catchAsync(async (req, res, next) => {
   });
 });
 
+exports.getAllPost = catchAsync(async (_req, res, _next) => {
+  const posts = await Post.find().sort({ createAt: -1 });
   res.status(200).json(posts);
 });
