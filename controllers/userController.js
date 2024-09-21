@@ -1,7 +1,6 @@
 const User = require("../models/User");
 const Post = require("../models/Post");
 const Comment = require("../models/Comment");
-const bcrypt = require("bcryptjs");
 const catchAsync = require("../utils/catchAsync");
 const AppErr = require("../utils/appErr");
 
@@ -18,30 +17,18 @@ exports.updateUser = catchAsync(async (req, res, next) => {
   res.status(200).json(user);
 });
 
-// exports.deleteUser = catchAsync(async (req, res, next) => {
-//   const { id } = req.params
-//   const user = await User.findByIdAndDelete(id)
-//   if (!user) {
-//     return next(new AppErr('No user found with that ID', 404))
-//   }
-//   res.status(200).json(user)
-// })
 exports.deleteUser = catchAsync(async (req, res, next) => {
   const { id } = req.params;
 
-  // Step 1: Update "likes" array in posts to remove the user's ID
   await Post.updateMany(
     { likes: { $elemMatch: { user: id } } },
     { $pull: { likes: { user: id } } },
   );
 
-  // Step 2: Delete all comments created by the user
   await Comment.deleteMany({ userId: id });
 
-  // Step 3: Delete all posts created by the user
   await Post.deleteMany({ userId: id });
 
-  // Step 4: Delete the user document itself
   const user = await User.findByIdAndDelete(id);
   if (!user) {
     return next(new AppErr("No user found with that ID", 404));
@@ -60,7 +47,6 @@ exports.getUser = catchAsync(async (req, res, next) => {
     return next(new AppErr("No user found with that ID", 404));
   }
 
-  // const { password, updatedAt, createdAt, ...other } = user._doc;
   res.status(200).json(user);
 });
 
