@@ -6,10 +6,10 @@ const AppErr = require("../utils/appErr");
 
 const signToken = (id) => {
   return {
-    accessToken: jwt.sign({ id }, process.env.ACCESS_TOKEN_SECRET, {
+    accessToken: jwt.sign({ id }, `${process.env.ACCESS_TOKEN_SECRET}`, {
       expiresIn: parseInt(process.env.ACCESS_TOKEN_EXPIRES_IN) * 60 * 60 * 1000,
     }),
-    refreshToken: jwt.sign({ id }, process.env.REFRESH_TOKEN_SECRET, {
+    refreshToken: jwt.sign({ id }, `${process.env.REFRESH_TOKEN_SECRET}`, {
       expiresIn:
         parseInt(process.env.REFRESH_TOKEN_EXPIRES_IN) * 24 * 60 * 60 * 1000,
     }),
@@ -80,7 +80,7 @@ exports.login = catchAsync(async (req, res, next) => {
 exports.refresh = catchAsync(async (req, res, next) => {
   const cookies = req.cookies;
 
-  if (!cookies?.jwt) return next(new AppErr("Unauthorized", 401));
+  if (!cookies?.jwt) return next(new AppErr("unauthenticated", 401));
   const refreshToken = cookies.jwt;
 
   const decoded = await promisify(jwt.verify)(
@@ -149,7 +149,7 @@ exports.protect = catchAsync(async (req, _res, next) => {
   const currentUser = await User.findById(decoded.id);
   if (!currentUser) {
     return next(
-      new AppErr("The user belonging to this token does no longer exist.", 401),
+      new AppErr("The user belonging to this token does no longer exist.", 404),
     );
   }
 
