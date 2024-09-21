@@ -3,19 +3,22 @@ const PostSchema = new mongoose.Schema(
   {
     title: {
       type: String,
-      required: [true, "title most have a title"],
+      required: [true, "Title is required"],
+      trim: true,
     },
-    body: {
+    content: {
       type: String,
+      required: [true, "Content is required"],
+      trim: true,
     },
     image: {
       type: String,
-      default: "",
+      default: null,
     },
-    category: [
+    tags: [
       {
-        value: String,
-        label: String,
+        id: String,
+        text: String,
       },
     ],
 
@@ -24,7 +27,7 @@ const PostSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
-    userId: {
+    author: {
       type: mongoose.Schema.ObjectId,
       ref: "User",
       required: [true, "Post must belong to a user"],
@@ -49,7 +52,7 @@ PostSchema.virtual("Comments", {
 });
 PostSchema.pre(/^find/, function (next) {
   this.populate({
-    path: "userId comments",
+    path: "author comments",
   });
   next();
 });
