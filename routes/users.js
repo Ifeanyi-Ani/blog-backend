@@ -13,10 +13,10 @@ router.get("/", getAllUser);
 // router.patch('/updateMe', authController.protect, userController.updateMe)
 //update User
 
-router.use(protect);
 router
   .route("/:id")
-  .delete(deleteUser)
+  .patch(protect, updateUser)
+  .delete(protect, deleteUser)
   .get(getUser);
 //get all user
 //follow a user

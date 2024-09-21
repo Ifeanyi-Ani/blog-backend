@@ -6,11 +6,12 @@ const { protect } = require("../controllers/authController");
 router
   .route("/")
   .get(postController.getAllPost)
+  .post(protect, postController.createPost);
 
-router.use(protect);
 router
   .route("/:id")
-  .delete(postController.deletePost)
+  .patch(protect, postController.updatePost)
+  .delete(protect, postController.deletePost)
   .get(postController.getPost);
 
 module.exports = router;
