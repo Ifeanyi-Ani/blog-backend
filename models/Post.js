@@ -5,11 +5,14 @@ const PostSchema = new mongoose.Schema(
       type: String,
       required: [true, "Title is required"],
       trim: true,
+      minLength: 1,
+      maxLength: 100,
     },
     content: {
       type: String,
       required: [true, "Content is required"],
       trim: true,
+      minLength: 3,
     },
     image: {
       type: String,
@@ -21,7 +24,6 @@ const PostSchema = new mongoose.Schema(
         text: String,
       },
     ],
-
     likes: [],
     createdAt: {
       type: Date,
@@ -45,15 +47,18 @@ const PostSchema = new mongoose.Schema(
     toObject: { virtuals: true },
   },
 );
+
 PostSchema.virtual("Comments", {
   ref: "Comment",
   foreignField: "postId",
   localField: "_id",
 });
+
 PostSchema.pre(/^find/, function (next) {
   this.populate({
     path: "author comments",
   });
   next();
 });
+
 module.exports = mongoose.model("Post", PostSchema);
