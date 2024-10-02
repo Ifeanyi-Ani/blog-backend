@@ -180,3 +180,27 @@ exports.restrictTo = (...roles) => {
 // exports.resetPassword = catchAsync(async (req, res, next) => {
 
 // })
+exports.changePassword = catchAsync(async (req, res, _next) => {
+  const { password, newPassword, confirmNewPassword } = req.body;
+  if (!req.user) {
+    throw new AppErr("Only loggedin user can change their password", 400);
+  }
+
+  if (!password || !newPassword || !confirmNewPassword) {
+    throw new AppErr("All field are required", 400);
+  }
+
+  if (newPassword !== confirmNewPassword) {
+    throw new AppErr("Password does not match", 400);
+  }
+
+  const user = await User.findOne({ _id: req.user.id }).select("+password");
+  if (!(await user.correctPassword(password, user.password))) {
+    throw new AppErr("Incorrect password", 401);
+  }
+
+  user.password = newPassword;
+  user.passwordConfirm = confirmNewPassword;
+  await user.save();
+  createSendToken(user, 200, req, res);
+});
