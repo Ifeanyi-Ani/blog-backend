@@ -58,7 +58,7 @@ exports.deletePost = catchAsync(async (req, res, next) => {
   }
 
   res.status(200).json({
-    status: "success",
+    status: "Post successfully deleted",
   });
 });
 
