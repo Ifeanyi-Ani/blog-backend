@@ -43,7 +43,6 @@ const UserSchema = new mongoose.Schema(
       default:
         "https://firebasestorage.googleapis.com/v0/b/blog-460e6.appspot.com/o/users%2Faccc.webp%20%2018578.47943011995?alt=media&token=d4661f07-40dd-4f37-b1dc-950f50933707",
     },
-
     role: {
       type: String,
       enum: ["user", "admin"],
@@ -53,6 +52,18 @@ const UserSchema = new mongoose.Schema(
       type: Date,
       required: [true, "Please input your date of birth"],
     },
+    bio: {
+      type: String,
+      trim: true,
+    },
+    followers: [
+      {
+        type: mongoose.Schema.ObjectId,
+        ref: "User",
+      },
+    ],
+    gitHub: String,
+    linkedIn: String,
 
     passwordResetToken: String,
     passwordResetExpires: Date,
@@ -92,7 +103,7 @@ UserSchema.methods.correctPassword = async function (
 };
 
 UserSchema.methods.createPasswordResetToken = function () {
-  const resetToken = crypto.randomBytes(32).toString("hex");
+  const resetToken = crypto.randomBytes(3).toString("hex");
 
   this.passwordResetToken = crypto
     .createHash("sha256")
@@ -100,7 +111,6 @@ UserSchema.methods.createPasswordResetToken = function () {
     .digest("hex");
 
   this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
-  console.log(resetToken);
   return resetToken;
 };
 
