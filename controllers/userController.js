@@ -6,7 +6,7 @@ const AppErr = require("../utils/appErr");
 
 exports.updateUser = catchAsync(async (req, res, next) => {
   const { id } = req.params;
-  // if (req.file) req.body.photo = req.file.filename
+
   const user = await User.findByIdAndUpdate(id, req.body, {
     new: true,
     runValidators: true,
@@ -35,13 +35,13 @@ exports.deleteUser = catchAsync(async (req, res, next) => {
   }
 
   res.status(200).json({
-    status: "success",
+    status: "User successfully deleted",
   });
 });
 exports.getUser = catchAsync(async (req, res, next) => {
   const { id } = req.params;
 
-  const user = await User.findById(id).populate("posts");
+  const user = await User.findById(id).populate(["posts", "followers"]);
 
   if (!user) {
     return next(new AppErr("No user found with that ID", 404));
@@ -70,25 +70,38 @@ exports.followers = catchAsync(async (req, res) => {
   }
 });
 
-// const filterObj = (obj, ...allowedFields) => {
-//   const newObj = {}
-//   Object.keys(obj).forEach(el => {
-//     if (allowedFields.includes(el)) newObj[el] = obj[el]
-//   })
-// }
-// exports.updateMe = catchAsync(async (req, res, next) => {
-//   if (req.body.password || req.body.passwordConfirm) {
-//     return next(new AppErr('This route is not for password update. Please use /forgotPassword.', 400))
-//   }
-//   const filteredBody = filterObj(req.body, 'username', 'category', 'photo')
-//   const updatedUser = await User.findByIdAndUpdate(req.user.id, filteredBody, {
-//     new: true,
-//     runValidators: true
-//   })
-//   res.status(200).json({
-//     status: "success",
-//     data: {
-//       user: updatedUser
-//     }
-//   })
-// })
+const filterObj = (obj, ...allowedFields) => {
+  const newObj = {};
+  Object.keys(obj).forEach((el) => {
+    if (allowedFields.includes(el)) newObj[el] = obj[el];
+  });
+};
+
+exports.updateMe = catchAsync(async (req, res, next) => {
+  if (req.body.password || req.body.passwordConfirm) {
+    return next(
+      new AppErr(
+        "This route is not for password update. Please use /changePassword.",
+        400,
+      ),
+    );
+  }
+  const filteredBody = filterObj(
+    req.body,
+    "username",
+    "bio",
+    "photo",
+    "gitHub",
+    "linkedIn",
+  );
+  const updatedUser = await User.findByIdAndUpdate(req.user.id, filteredBody, {
+    new: true,
+    runValidators: true,
+  });
+  res.status(200).json({
+    status: "success",
+    data: {
+      user: updatedUser,
+    },
+  });
+});
