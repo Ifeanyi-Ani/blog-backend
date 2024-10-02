@@ -16,7 +16,7 @@ const signToken = (id) => {
   };
 };
 
-const createSendToken = (user, statusCode, req, res) => {
+const createSendToken = (user, statusCode, _req, res) => {
   const token = signToken(user._id);
 
   res.cookie("jwt", token.refreshToken, {
@@ -45,7 +45,7 @@ const createSendToken = (user, statusCode, req, res) => {
   });
 };
 
-exports.signup = catchAsync(async (req, res, next) => {
+exports.signup = catchAsync(async (req, res, _next) => {
   // creating new user
   const newUser = await User.create(req.body);
 
@@ -59,7 +59,7 @@ exports.login = catchAsync(async (req, res, next) => {
 
   // throw and error if there is no email or password
   if (!email || !password) {
-    next(new AppErr("Please provide email and password"), 400);
+    next(new AppErr("Please provide email and password!"), 400);
   }
 
   // we find the email and password in our database
@@ -115,7 +115,6 @@ exports.logout = catchAsync(async (req, res, next) => {
 });
 
 exports.getLoggedUser = catchAsync(async (req, res, next) => {
-  console.log(req.user);
   const userId = req.user.id;
   const match = User.findById(userId);
   if (!match) return next(new AppErr("Loggedin User not found", 404));
@@ -168,18 +167,19 @@ exports.restrictTo = (...roles) => {
     next();
   };
 };
-// exports.forgotPassword = catchAsync(async (req, res, next) => {
-//   const user = await User.findOne({ email: req.body.email })
-//   if (!user) {
-//     return next(new AppErr('There is no user with email address.', 404))
-//   }
-//   const resetToken = user.createPasswordResetToken()
-//   await user.save({ validateBeforeSave: false })
+exports.forgotPassword = catchAsync(async (req, res, next) => {
+  const user = await User.findOne({ email: req.body.email });
 
-// })
-// exports.resetPassword = catchAsync(async (req, res, next) => {
+  if (!user) {
+    return next(new AppErr("There is no user with that email address!", 404));
+  }
+  const resetToken = user.createPasswordResetToken();
+  console.log(resetToken);
+  await user.save({ validateBeforeSave: false });
+});
 
-// })
+exports.resetPassword = catchAsync(async (req, res, next) => {});
+
 exports.changePassword = catchAsync(async (req, res, _next) => {
   const { password, newPassword, confirmNewPassword } = req.body;
   if (!req.user) {
