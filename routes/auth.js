@@ -8,7 +8,7 @@ router.get("/refresh", authController.refresh);
 router.get("/me", authController.protect, authController.getLoggedUser);
 
 router.post("/forgotPassword", authController.forgotPassword);
-router.post("/resetPassword", authController.resetPassword);
+router.patch("/resetPassword", authController.resetPassword);
 router.post(
   "/changePassword",
   authController.protect,

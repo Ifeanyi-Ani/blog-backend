@@ -102,7 +102,7 @@ UserSchema.methods.correctPassword = async function (
   }
 };
 
-UserSchema.methods.createPasswordResetToken = function () {
+UserSchema.methods.CreatePasswordResetCode = function () {
   const resetToken = crypto.randomBytes(3).toString("hex");
 
   this.passwordResetToken = crypto
