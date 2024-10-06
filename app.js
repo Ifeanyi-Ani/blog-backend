@@ -4,6 +4,9 @@ const cookieParser = require("cookie-parser");
 const helmet = require("helmet");
 const morgan = require("morgan");
 const cors = require("cors");
+const rateLimit = require("express-rate-limit");
+const mongoSanitize = require("express-mongo-sanitize");
+const xssClean = require("xss-clean");
 
 const globalErr = require("./controllers/errController");
 const AppErr = require("./utils/appErr");
@@ -17,6 +20,13 @@ const corOptions = require("./config/corOptions");
 
 const App = express();
 
+// const limiter = rateLimit({
+//   max: 200,
+//   windowMs: 60 * 60 * 1000,
+//   message: "Too many requests for this IP, please try again in an hour",
+// });
+App.use(helmet());
+// App.use(limiter);
 App.use(credentials);
 App.use(cors(corOptions));
 // App.use(cors({
@@ -26,10 +36,14 @@ App.use(cors(corOptions));
 // App.options("*", cors());
 
 App.use(express.static(path.join(__dirname, "public")));
-App.use(helmet());
 App.use(express.json());
 App.use(express.urlencoded({ extended: true }));
+
+App.use(mongoSanitize());
+App.use(xssClean());
+
 App.use(cookieParser());
+
 App.use(morgan("dev"));
 
 App.use((req, _res, next) => {
