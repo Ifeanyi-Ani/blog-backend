@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const CommentSchema = new mongoose.Schema(
   {
-    text: {
+    content: {
       type: String,
       required: [true, "Comment must have a content"],
     },
@@ -24,10 +24,16 @@ const CommentSchema = new mongoose.Schema(
     parentAuthor: {
       type: String,
     },
-    replies: [
+    likes: [
       {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Comment",
+        type: mongoose.Schema.ObjectId,
+        ref: "User",
+      },
+    ],
+    dislikes: [
+      {
+        type: mongoose.Schema.ObjectId,
+        ref: "User",
       },
     ],
   },
@@ -41,13 +47,7 @@ const CommentSchema = new mongoose.Schema(
 CommentSchema.pre(/^find/, function (next) {
   this.populate({
     path: "userId",
-    select: "username photo role",
-  }).populate({
-    path: "replies",
-    populate: {
-      path: "userId",
-      select: "username photo",
-    },
+    select: "username photo",
   });
   next();
 });
