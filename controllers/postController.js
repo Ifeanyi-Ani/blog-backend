@@ -31,12 +31,6 @@ exports.getPost = catchAsync(async (req, res, next) => {
 
   const post = await Post.findById(id).populate({
     path: "comments",
-    populate: {
-      path: "replies",
-      populate: {
-        path: "replies",
-      },
-    },
   });
 
   if (!Post) {
