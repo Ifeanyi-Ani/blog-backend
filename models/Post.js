@@ -20,7 +20,6 @@ const PostSchema = new mongoose.Schema(
     },
     tags: [
       {
-        id: String,
         text: String,
       },
     ],
@@ -34,12 +33,6 @@ const PostSchema = new mongoose.Schema(
       ref: "User",
       required: [true, "Post must belong to a user"],
     },
-    comments: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Comment",
-      },
-    ],
   },
   {
     timestamps: true,
@@ -48,7 +41,7 @@ const PostSchema = new mongoose.Schema(
   },
 );
 
-PostSchema.virtual("Comments", {
+PostSchema.virtual("comments", {
   ref: "Comment",
   foreignField: "postId",
   localField: "_id",
@@ -56,7 +49,7 @@ PostSchema.virtual("Comments", {
 
 PostSchema.pre(/^find/, function (next) {
   this.populate({
-    path: "author comments",
+    path: "author",
   });
   next();
 });
