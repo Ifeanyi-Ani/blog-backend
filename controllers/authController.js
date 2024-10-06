@@ -61,7 +61,7 @@ exports.login = catchAsync(async (req, res, next) => {
 
   // throw and error if there is no email or password
   if (!email || !password) {
-    next(new AppErr("Please provide email and password!"), 400);
+    throw new AppErr("Please provide email and password!", 400);
   }
 
   // we find the email and password in our database
@@ -215,11 +215,16 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
     throw new AppErr("Token is Invalid or has Expired", 400);
   }
 
+  console.log({ newPassword, confirmNewPassword });
+  if (newPassword !== confirmNewPassword) {
+    throw new AppErr("Password does not match");
+  }
+
   user.password = newPassword;
   user.passwordConfirm = confirmNewPassword;
   user.passwordResetToken = undefined;
   user.passwordResetExpires = undefined;
-  user.save();
+  user.save({ validateBeforeSave: false });
 
   createSendToken(user, 200, req, res);
 });
