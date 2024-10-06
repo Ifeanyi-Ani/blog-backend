@@ -2,20 +2,21 @@ const express = require("express");
 const commentController = require("../controllers/commentController");
 const { protect } = require("../controllers/authController");
 
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 
 router
-  .route("/:postId")
+  .route("/")
   .post(protect, commentController.createComment)
   .get(commentController.getComments);
 
-router.post("/:postId/:parentId", commentController.replyComment);
+router
+  .route("/:parentId/replies")
+  .post(protect, commentController.replyComment)
+  .get(commentController.getReplies);
 
 router
-  .route("/:postId/:commentId")
+  .route("/:commentId")
   .patch(protect, commentController.editComment)
   .delete(protect, commentController.deleteComment);
-
-router.get("/posts", commentController.getAllComments);
 
 module.exports = router;

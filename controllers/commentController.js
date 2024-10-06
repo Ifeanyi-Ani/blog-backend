@@ -1,71 +1,71 @@
 const Comment = require("../models/Comment");
-const User = require("../models/User");
 const catchAsync = require("../utils/catchAsync");
 const AppErr = require("../utils/appErr");
-const Post = require("../models/Post");
 
 exports.createComment = catchAsync(async (req, res, next) => {
   const { postId } = req.params;
-  const { text, userId } = req.body;
-
-  // Check if the user exists
-  const user = await User.findById(userId);
-  if (!user) {
-    return next(new AppErr("No user found with that ID", 404));
-  }
 
   const comment = await Comment.create({
-    text,
+    ...req.body,
     postId,
-    userId,
+    userId: req.user.id,
+    parentId: null,
   });
   if (!comment) {
     return next(new AppErr("unable to create comment", 404));
   }
-  await Post.findByIdAndUpdate(postId, { $push: { comments: comment._id } });
+
   res.status(201).json(comment);
 });
 
 exports.replyComment = catchAsync(async (req, res, next) => {
+  const { parentId } = req.params;
   const reply = new Comment({
-    text: req.body.text,
-    userId: req.body.userId,
-    postId: req.params.postId,
-    parentId: req.params.parentId,
-    parentAuthor: req.body.parentAuthor,
+    ...req.body,
+    userId: req.user.id,
+    parentId,
   });
+
   const saveReply = await reply.save();
-  await Comment.findByIdAndUpdate(req.params.parentId, {
-    $push: { replies: saveReply._id },
-  });
+
   if (!saveReply) {
     return new (AppErr("unable to reply", 404))();
   }
   res.status(201).json(saveReply);
 });
 
+exports.getReplies = catchAsync(async (req, res, next) => {
+  const { parentId } = req.params;
+  const replies = await Comment.find({ parentId: parentId })
+    .sort({ createAt: 1 })
+    .exec();
+
+  res.status(200).json(replies);
+});
+
 exports.getComments = catchAsync(async (req, res, next) => {
+  let filter = {};
+
   const { postId } = req.params;
 
-  const comments = await Comment.find({ postId, parentId: null });
+  if (postId) filter = { postId, parentId: null };
+
+  const comments = await Comment.find(filter);
 
   res.status(200).json(comments);
 });
-exports.getAllComments = catchAsync(async (req, res, next) => {
-  const comments = await Comment.find();
-  res.status(200).json(comments);
-});
+
 exports.editComment = catchAsync(async (req, res, next) => {
   const { commentId } = req.params;
-  const { text } = req.body;
+  const { content } = req.body;
 
-  if (!text) {
+  if (!content) {
     return next(new AppErr("Comment text is required.", 400));
   }
 
   const comment = await Comment.findByIdAndUpdate(
     commentId,
-    { text },
+    { content },
     { new: true, runValidators: true },
   );
 
