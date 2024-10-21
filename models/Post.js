@@ -14,10 +14,10 @@ const PostSchema = new mongoose.Schema(
       trim: true,
       minLength: 3,
     },
-    image: {
-      type: String,
-      default: null,
-    },
+    // image: {
+    //   type: String,
+    //   default: null,
+    // },
     tags: [
       {
         text: String,
