@@ -89,3 +89,26 @@ exports.deleteComment = catchAsync(async (req, res, next) => {
     status: "success",
   });
 });
+
+exports.likeComment = catchAsync(async (req, res, next) => {
+  const { commentId } = req.params;
+  const userId = req.user.id;
+
+  const comment = await Comment.findById(commentId);
+  if (!comment) {
+    throw new AppErr("No comment found with that ID", 404);
+  }
+
+  const existingUser = comment.likes.includes(userId);
+
+  if (existingUser) {
+    comment.likes = comment.likes.filter(
+      (id) => id.toString() !== userId.toString(),
+    );
+  } else {
+    comment.likes.push(userId);
+  }
+
+  await comment.save();
+  res.status(200).json(comment);
+});

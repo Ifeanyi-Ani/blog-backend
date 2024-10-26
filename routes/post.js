@@ -16,4 +16,5 @@ router
   .delete(protect, postController.deletePost)
   .get(postController.getPost);
 
+router.post("/:id/likes", protect, postController.likePost);
 module.exports = router;
