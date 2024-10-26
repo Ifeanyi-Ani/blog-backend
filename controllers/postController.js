@@ -47,6 +47,7 @@ exports.deletePost = catchAsync(async (req, res, next) => {
   await Comment.deleteMany({ postId: postId });
 
   const post = await Post.findByIdAndDelete(postId);
+
   if (!post) {
     return next(new AppErr("No post found with that ID", 404));
   }
@@ -59,4 +60,26 @@ exports.deletePost = catchAsync(async (req, res, next) => {
 exports.getAllPost = catchAsync(async (_req, res, _next) => {
   const posts = await Post.find().sort({ createAt: -1 });
   res.status(200).json(posts);
+});
+
+exports.likePost = catchAsync(async (req, res, next) => {
+  const { id: postId } = req.params;
+  const userId = req.user.id;
+
+  const post = await Post.findById(postId);
+
+  if (!post) {
+    return next(new AppErr("No Post found with that ID", 404));
+  }
+
+  const existingUser = post.likes.includes(userId);
+
+  if (existingUser) {
+    post.likes = post.likes.filter((id) => id.toString() !== userId.toString());
+  } else {
+    post.likes.push(userId);
+  }
+  await post.save();
+
+  res.status(200).json(post);
 });

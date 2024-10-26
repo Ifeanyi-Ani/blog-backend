@@ -14,16 +14,17 @@ const PostSchema = new mongoose.Schema(
       trim: true,
       minLength: 3,
     },
-    // image: {
-    //   type: String,
-    //   default: null,
-    // },
+    likes: [
+      {
+        type: mongoose.Schema.ObjectId,
+        ref: "User",
+      },
+    ],
     tags: [
       {
         text: String,
       },
     ],
-    likes: [],
     createdAt: {
       type: Date,
       default: Date.now,

@@ -19,4 +19,6 @@ router
   .patch(protect, commentController.editComment)
   .delete(protect, commentController.deleteComment);
 
+router.post("/:commentId/likes", protect, commentController.likeComment);
+
 module.exports = router;
