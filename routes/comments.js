@@ -6,12 +6,20 @@ const router = express.Router({ mergeParams: true });
 
 router
   .route("/")
-  .post(protect, commentController.createComment)
+  .post(
+    protect,
+    commentController.setPostIdAndUserId,
+    commentController.createComment,
+  )
   .get(commentController.getComments);
 
 router
   .route("/:parentId/replies")
-  .post(protect, commentController.replyComment)
+  .post(
+    protect,
+    commentController.setParentIdAndUserId,
+    commentController.replyComment,
+  )
   .get(commentController.getReplies);
 
 router

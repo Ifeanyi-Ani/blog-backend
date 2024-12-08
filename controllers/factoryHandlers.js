@@ -1,4 +1,5 @@
 const catchAsync = require("../utils/catchAsync");
+const AppErr = require("../utils/appErr");
 
 exports.createOne = (Model) =>
   catchAsync(async (req, res) => {
@@ -58,8 +59,11 @@ exports.getOne = (Model, populateOptions) =>
   });
 
 exports.getAll = (Model) =>
-  catchAsync(async (_req, res, _next) => {
-    const record = await Model.find().sort({ createAt: -1 });
+  catchAsync(async (req, res, _next) => {
+    let filter;
+    if (req.params.postId) filter = { postId: req.params.postId };
+    if (req.params.parentId) filter = { parentId: req.params.parentId };
+    const record = await Model.find(filter).sort({ createAt: -1 });
     res.status(200).json({ results: record.length, data: record });
   });
 
