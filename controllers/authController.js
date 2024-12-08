@@ -118,7 +118,7 @@ exports.logout = catchAsync(async (req, res, next) => {
 
 exports.getLoggedUser = catchAsync(async (req, res, next) => {
   const userId = req.user.id;
-  const match = User.findById(userId);
+  const match = await User.findById({ _id: userId });
   if (!match) return next(new AppErr("Loggedin User not found", 404));
   res.status(200).json({ currentUser: match });
 });

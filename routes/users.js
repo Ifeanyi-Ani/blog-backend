@@ -17,9 +17,9 @@ router.patch("/updateMe", protect, updateMe);
 
 router
   .route("/:id")
-  .patch(protect, updateUser)
+  .patch(protect, restrictTo("admin"), updateUser)
   .delete(protect, restrictTo("admin"), deleteUser)
-  .get(protect, getUser);
+  .get(getUser);
 
 router.put("/:id/followers", followers);
 
