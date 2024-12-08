@@ -20,11 +20,7 @@ const PostSchema = new mongoose.Schema(
         ref: "User",
       },
     ],
-    tags: [
-      {
-        text: String,
-      },
-    ],
+    tags: [String],
     createdAt: {
       type: Date,
       default: Date.now,

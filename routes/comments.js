@@ -6,19 +6,27 @@ const router = express.Router({ mergeParams: true });
 
 router
   .route("/")
-  .post(protect, commentController.createComment)
+  .post(
+    protect,
+    commentController.setPostIdAndUserId,
+    commentController.createComment,
+  )
   .get(commentController.getComments);
 
 router
   .route("/:parentId/replies")
-  .post(protect, commentController.replyComment)
+  .post(
+    protect,
+    commentController.setParentIdAndUserId,
+    commentController.replyComment,
+  )
   .get(commentController.getReplies);
 
 router
-  .route("/:commentId")
+  .route("/:id")
   .patch(protect, commentController.editComment)
   .delete(protect, commentController.deleteComment);
 
-router.post("/:commentId/likes", protect, commentController.likeComment);
+router.post("/:id/likes", protect, commentController.likeComment);
 
 module.exports = router;

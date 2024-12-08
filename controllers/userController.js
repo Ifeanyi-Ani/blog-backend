@@ -3,19 +3,7 @@ const Post = require("../models/Post");
 const Comment = require("../models/Comment");
 const catchAsync = require("../utils/catchAsync");
 const AppErr = require("../utils/appErr");
-
-exports.updateUser = catchAsync(async (req, res, next) => {
-  const { id } = req.params;
-
-  const user = await User.findByIdAndUpdate(id, req.body, {
-    new: true,
-    runValidators: true,
-  });
-  if (!user) {
-    return next(new AppErr("No user found with that ID", 404));
-  }
-  res.status(200).json(user);
-});
+const factoryHandler = require("./factoryHandlers");
 
 exports.deleteUser = catchAsync(async (req, res, next) => {
   const { id } = req.params;
@@ -29,6 +17,14 @@ exports.deleteUser = catchAsync(async (req, res, next) => {
 
   await Post.deleteMany({ userId: id });
 
+  await User.updateMany(
+    {
+      followers: { $elemMatch: { user: id } },
+      following: { $elemMatch: { user: id } },
+    },
+    { $pull: { followers: { user: id }, following: { user: id } } },
+  );
+
   const user = await User.findByIdAndDelete(id);
   if (!user) {
     return next(new AppErr("No user found with that ID", 404));
@@ -37,22 +33,6 @@ exports.deleteUser = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: "User successfully deleted",
   });
-});
-exports.getUser = catchAsync(async (req, res, next) => {
-  const { id } = req.params;
-
-  const user = await User.findById(id).populate(["posts", "followers"]);
-
-  if (!user) {
-    return next(new AppErr("No user found with that ID", 404));
-  }
-
-  res.status(200).json(user);
-});
-
-exports.getAllUser = catchAsync(async (req, res, next) => {
-  const user = await User.find();
-  res.status(200).json(user);
 });
 
 exports.followers = catchAsync(async (req, res) => {
@@ -105,3 +85,9 @@ exports.updateMe = catchAsync(async (req, res, next) => {
     },
   });
 });
+
+exports.updateUser = factoryHandler.updateOne(User);
+
+exports.getUser = factoryHandler.getOne(User);
+
+exports.getAllUser = factoryHandler.getAll(User);

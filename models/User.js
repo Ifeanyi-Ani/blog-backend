@@ -4,6 +4,16 @@ const bcrypt = require("bcryptjs");
 const validator = require("validator");
 const UserSchema = new mongoose.Schema(
   {
+    firstName: {
+      type: String,
+      required: [true, "Provide your first name"],
+      min: 3,
+    },
+    lastName: {
+      type: String,
+      required: [true, "Provide your last name"],
+      min: 3,
+    },
     username: {
       type: String,
       required: [true, "Provide your username"],
@@ -56,6 +66,12 @@ const UserSchema = new mongoose.Schema(
       trim: true,
     },
     followers: [
+      {
+        type: mongoose.Schema.ObjectId,
+        ref: "User",
+      },
+    ],
+    following: [
       {
         type: mongoose.Schema.ObjectId,
         ref: "User",
