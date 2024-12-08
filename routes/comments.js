@@ -15,10 +15,10 @@ router
   .get(commentController.getReplies);
 
 router
-  .route("/:commentId")
+  .route("/:id")
   .patch(protect, commentController.editComment)
   .delete(protect, commentController.deleteComment);
 
-router.post("/:commentId/likes", protect, commentController.likeComment);
+router.post("/:id/likes", protect, commentController.likeComment);
 
 module.exports = router;
